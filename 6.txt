@@ -1,0 +1,61 @@
+
+import numpy as np
+
+num_states = 5 * 5  
+num_actions = 4  
+Q_table = np.zeros((num_states, num_actions))
+
+grid_world = np.zeros((5, 5))
+grid_world[1, 1] = -1  
+grid_world[2, 2] = -1  
+grid_world[3, 3] = -1 
+goal = (4, 4)
+
+alpha = 0.1  
+gamma = 0.9  
+epsilon = 0.1 
+
+def state_to_index(state):
+    row, col = state
+    return row * 5 + col
+
+def q_learning(num_episodes):
+    for episode in range(num_episodes):
+        state = (0, 0)  
+        while state != goal:
+           
+            if np.random.uniform(0, 1) < epsilon:
+                action = np.random.choice(num_actions)
+            else:
+                action = np.argmax(Q_table[state_to_index(state)])
+
+            next_state = (state[0] + (action == 1) - (action == 0), state[1] + (action == 3) - (action == 2))
+
+            next_state = (np.clip(next_state[0], 0, 4), np.clip(next_state[1], 0, 4))
+
+            reward = -1  
+
+            Q_table[state_to_index(state), action] += alpha * (
+                reward + gamma * np.max(Q_table[state_to_index(next_state)]) - Q_table[state_to_index(state), action]
+            )
+
+            state = next_state
+
+    print("Q-learning training complete.")
+
+def test_policy():
+    state = (0, 0)
+    path = [state]
+    while state != goal:
+        action = np.argmax(Q_table[state_to_index(state)])
+        state = (state[0] + (action == 1) - (action == 0), state[1] + (action == 3) - (action == 2))
+        
+        state = (np.clip(state[0], 0, 4), np.clip(state[1], 0, 4))
+        
+        path.append(state)
+
+    print("Optimal path:", path)
+
+q_learning(num_episodes=1000)
+
+test_policy()
